@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 physeq.phylum <- tax_glom(physeq, 'phylum')
 tse = mia::makeTreeSummarizedExperimentFromPhyloseq(physeq.phylum) # create tse object from your phyloseq object
 
-tse_LinDA <- mia::subsetByPrevalentTaxa(tse, detection = 0, prevalence = 0.1) # filter tse object
+tse_LinDA <- mia::subsetByPrevalentTaxa(tse, detection = 0, prevalence = 0.1) # filter tse object if needed
 ```
 ```{r LinDA DA P analysis, comment="", echo=FALSE, message=FALSE, warning=FALSE}
 # Un-comment lines below to install LinDA from GitHub if needed
@@ -30,10 +30,19 @@ LinDA_phylum <- LinDA::linda(
   otu.tab, 
   meta, 
   formula = '~region', 
-  alpha = 0.05, 
-  prev.cut = 0, # we already filtered 
-  lib.cut = 1000, 
-  winsor.quan = 0.97)
+  type = "count", # options are type and proportion. defines the otu table data type. default is count
+  adaptive = TRUE, #default is TRUE. tells the function to choose the significance test most appropriate based on sequencing depth
+  imputation = FALSE, # can only be set if adaptive = FALSE. default is FALSE. if true, zeros in otu table are imputed. 
+  pseudo.cnt = 0.5, # default is 0.5. can only be implemented if imputation and adaptive are both FALSE
+  p.adj.method = 'BH', #default is BH, can be set to any of the options in p.adjust
+  alpha = 0.05, # significance level, default is 0.05
+  prev.cut = 0, # taxa with a prev.cut (prevalence -- percentage of non-zero values) lower     than the selected threshold are excluded. input values are 0-1
+  lib.cut = 1000, # taxa with a lib.cut lower than the selected threshold are excluded.        default is 1, input is any non-negative value
+  winsor.quan = 0.97, # sets the winsorization threshold. Default is NULL, meaning all values are included in analysis. In the example data with 0.97, 3% of otu table data at the extremes are removed from the analysis (limits extremes and outliers)
+  n.cores = 1, # default is 1. any positive integer, can be applied or changed in the case of a mixed-effect model
+  )
+
+# ?linda is very helpful! 
 
 LinDA_phylum
 LinDA::linda.plot(LinDA_phylum, c('region') )
