@@ -1,0 +1,54 @@
+---
+title: "Elevation_hologenomcis_div_v2"
+author: "Garazi Martin Bideguren"
+date: "2023-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data preparation
+
+### Load required libraries
+
+```{r libraries, message=FALSE, results=FALSE}
+library(tidyverse)
+library(ape)
+library(ggplot2)
+library(readxl)
+library(writexl)
+library(data.table)
+library(distillR)
+library(RColorBrewer)
+library(reshape2)
+library(stringr)
+library(Rtsne)
+```
+
+### Declare directories
+
+```{r directories}
+workingdir="/Users/dlz554/Desktop/PhD_project/Elevation_Hologenomics/Rmd/Elevatin_Hologenomics_v2"
+```
+
+# Diversity analyses
+
+## Functional diversity calculations
+
+```{r functional, message=FALSE, results=FALSE}
+#Create merge annotation file
+directory_path <- "/Users/dlz554/Desktop/PhD_project/Elevation_Hologenomics/Rmd/Elevatin_Hologenomics_v2/DRAM" #Directory of the tsv files (annotations.tsv)
+file_list <- list.files(directory_path, pattern = "\\.tsv", full.names = TRUE) #Create a list with all the files
+merged_data <- data.frame() #Create an empty data frame
+for (file in file_list) {
+  data <- read_tsv(file)
+  merged_data <- rbind(merged_data, data) #Read each tsv and merge them all together in the data frame
+}
+
+#GIFT distillation
+GIFTs <- distill(merged_data,GIFT_db,genomecol=2,annotcol=c(9,10,19))
+write.table(GIFTs,"GIFTs.tsv",row.names=T,col.names=T,quote=F,sep="\t")
+```
+
