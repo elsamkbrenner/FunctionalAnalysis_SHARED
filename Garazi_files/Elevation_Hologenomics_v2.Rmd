@@ -1,7 +1,7 @@
 ---
 title: "Elevation Hologenomics v2"
 author: "Garazi Martin Bideguren"
-date: "2023-12-06"
+date: "2023-12-13"
 output: 
   html_document:
     keep_md: yes
@@ -216,7 +216,7 @@ ggplot(count_table_cov_size_met, aes(x=sample,y=count,fill=phylum, group=phylum)
     scale_fill_manual(values=phylum_colors) +
     labs(y = "Relative abundance") +
     guides(fill = guide_legend(ncol = 3)) +
-    facet_grid(. ~ country)+
+    facet_grid(. ~ Transect + Elevation, scales = "free", space = "free")+
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
 					axis.title.x = element_blank(),
           panel.background = element_blank(),
@@ -497,7 +497,7 @@ beta_colors <- c("#e5bd5b","#6b7398","#76b183","#d57d2c","#2a2d26","#f9d4cc","#3
 
 ```{r beta_diversity, warning=FALSE, comments="", message=FALSE}
 beta_q1n <- hillpair(count_table_cov_size,q=1)
-#beta_q1p <- hillpair(count_table_cov_size,q=1, tree=tree, metric="S")
+beta_q1p <- hillpair(data=count_table_cov_size,q=1, tree=tree)
 beta_q1f <- hillpair(count_table_cov_size_filt,q=1, dist=dist)
 ```
 
@@ -533,11 +533,11 @@ beta_q1n_nmds %>%
 #### Phylogenetic
 
 ```{r beta_div_phylo_nmds, echo=TRUE, results = FALSE}
-beta_q1p_nmds <- beta_q1p %>%
+beta_q1p_nmds <- beta_q1p$S %>%
                 metaMDS(.,trymax = 500, k=2, verbosity=FALSE) %>%
                 vegan::scores() %>%
                 as_tibble(., rownames = "sample") %>%
-                left_join(sample_table, by = join_by(sample == EHI_number))
+                left_join(metadata, by = join_by(sample == EHI_number))
 ```
 
 ```{r beta_div_phylo_centroids, echo=TRUE}
@@ -641,7 +641,7 @@ sample_table_adonis_func <- metadata %>%
     as.data.frame()
 ```
 
-```{r beta_div_phylo_permanova_1, comment="", echo=TRUE, message=FALSE, warning=FALSE}
+```{r beta_div_func_permanova_1, comment="", echo=TRUE, message=FALSE, warning=FALSE}
 adonis2(formula=beta_q1f$S ~ Elevation+Transect+Sampling_point, data=sample_table_adonis_func[labels(beta_q1f$S),], permutations=999) %>%
     as.matrix() %>%
     kable()
